@@ -1,19 +1,20 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Thu Mar 15 01:58:15 2018
-
-Read_Data.py: creates npy vectors (.npy files) based on input image data.
+read_data.py: creates npy vectors (.npy files) based on input image data.
     Each input image yields a corresponding ID, pixel array, and label
-    param: a directory of .gif files (51 x 51)
-    param: a csv of labels for the .gif files
-    param: the number of images to read
-    param: a name used for the output files of this code
+    param: A root directory that contains .gif files. The .gif files must
+           be 51 x 51 single channel. Each input image must have an id which
+           is a string of digits, and for each input image, this code expects
+           a file "diff[id].gif", "temp[id].gif", and srch[id].gif", where
+           [id] is the image's id (without brackets).
+    param: A .csv file of labels for the .gif files. The table should have
+           columns named "ID" and "OBJECT_TYPE", where "OBJECT_TYPE" in {0, 1}
+    param: The maximum number of images to read
+    param: A name to be used for the output files of this code
 
-updates
-- windows and linux compatible
-- fixed some bug-Os
-- renamed some variables and stuff
+    The outputs are saved to the directory ./read_data_out/
+    output: A .npy vector of image id's
+    output: A .npy vector of corresponding image pixel arrays
+    output: A .npy vector of corresponding labels for those images
 """
 
 import os
@@ -27,8 +28,7 @@ import imageio
 
 import argparse
 
-"""
-    get_gif_paths: returns a list of the paths to the .gif files in the
+""" get_gif_paths: returns a list of the paths to the .gif files in the
                    root directory as well as all subdirectories
     @param img_path the path to the root folder containing the .gif files
     @return a list of paths to each of the .gif files
@@ -43,7 +43,7 @@ def get_gif_paths(img_path):
     print("number of .gif files found: " + str(np.size(gifnamevector)))
     return gifnamevector
 
-"""throw_out_data: iterates through the input vectors and throws out
+""" throw_out_data: iterates through the input vectors and throws out
                    samples with probability P. Useful for getting a more
                    even ratio of positive to negative samples
         P: probability of throwing out a positive sample
@@ -103,7 +103,7 @@ def read_data(img_path, featurePath, max_num_img, name):
                 print("id = " + gif_id + ": [diff, temp, srch] = " + str(d_t_s_found))
             
             idvec[index] = gif_id
-            featurerow = autoscan.loc[autoscan['ID'] == int(gif_id)] #1 row by 40 column dataframe
+            featurerow = autoscan.loc[autoscan['ID'] == int(gif_id)]
             Y[index] = featurerow.iloc[0]['OBJECT_TYPE']
 
         if index % 100 == 0:

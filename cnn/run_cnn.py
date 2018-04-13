@@ -1,5 +1,17 @@
-# import default packages
+"""
+run_cnn.py: Trains and/or tests a CNN for the given input data.
+    param: The file path to the directory containing the .npy outputs of
+           read_data.py
+    param: The name of the input data set. This should be the suffix of the
+           .npy files. For example, if the image vector filename is
+           "image_vector_[name]", then this input should be [name] (no brackets)
 
+    The outputs are saved to the directory of the input .npy files
+    output: A .hd5 file
+    output: A .fit file
+"""
+
+# import default packages
 from astropy.io import fits
 from astropy.table import Table
 from astropy.modeling.models import Sersic2D
