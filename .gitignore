@@ -1,8 +1,14 @@
 # raw data files
+data_fits/
+data_gifs/
 *.gif
 *.fits
 
+# raw feature files
+*.csv
+
 # output from read_data.py
+read_data_out/
 *.npy
 
 # output from run_cnn
