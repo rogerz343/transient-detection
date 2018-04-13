@@ -1,0 +1,10 @@
+# raw data files
+*.gif
+*.fits
+
+# output from read_data.py
+*.npy
+
+# output from run_cnn
+*.hd5
+*.fit
