@@ -1,6 +1,10 @@
 # transient-detection
-
 A collection of machine learning techniques used to classify images of the night sky as either potential astronomical objects or as statistical defects or noise.
+
+## required files
+Some of the code references input image files (.gif) and a .csv file that
+contains data about the images (labels, ids, features, etc.). All of these
+files can be found at http://portal.nersc.gov/project/dessn/autoscan/.
 
 ## cnn
 Contains the code for a convolutional neural network used to classify images.

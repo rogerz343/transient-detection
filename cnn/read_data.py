@@ -1,12 +1,12 @@
 """
 read_data.py: creates npy vectors (.npy files) based on input image data.
     Each input image yields a corresponding ID, pixel array, and label
-    param: A root directory that contains .gif files. The .gif files must
+    param: Path to root directory that contains .gif files. The .gif files must
            be 51 x 51 single channel. Each input image must have an id which
            is a string of digits, and for each input image, this code expects
            a file "diff[id].gif", "temp[id].gif", and srch[id].gif", where
            [id] is the image's id (without brackets).
-    param: A .csv file of labels for the .gif files. The table should have
+    param: Path to .csv file of labels for the .gif files. The table should have
            columns named "ID" and "OBJECT_TYPE", where "OBJECT_TYPE" in {0, 1}
     param: The maximum number of images to read
     param: A name to be used for the output files of this code
@@ -20,8 +20,6 @@ read_data.py: creates npy vectors (.npy files) based on input image data.
 import os
 import errno
 import numpy as np
-from scipy import misc
-from scipy.ndimage import zoom
 import re
 import pandas as pd
 import imageio
