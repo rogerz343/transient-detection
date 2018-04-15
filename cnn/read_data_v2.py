@@ -58,7 +58,7 @@ def get_img_paths(imgs_root, file_ext):
     paths = []
     for root, _, files in os.walk(imgs_root, topdown=False):
         for file in files:
-            path = os.path.join(root, file))
+            path = os.path.join(root, file)
             if os.path.isfile(path) and path.lower().endswith(file_ext):
                 paths.append(path)
     print('Number of files found: ' + str(len(paths)) + '.')
