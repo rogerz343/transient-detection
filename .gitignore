@@ -12,5 +12,6 @@ read_data_out/
 *.npy
 
 # output from run_cnn
+run_cnn_out/
 *.hd5
 *.fit

@@ -186,7 +186,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     print('Saving model.')
     model.save_weights(output_dir + '/' + name + '.hd5', overwrite=True)
     model_json = model.to_json()
-    with open(name + '.json', 'w') as json_file:
+    with open(output_dir + '/' + name + '.json', 'w') as json_file:
         json_file.write(model_json)
     return
 
@@ -218,9 +218,6 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, name, thresh):
     predicted_labels = model.predict(val_imgs)
 
     print(predicted_labels)   # TODO: get rid of this
-    
-    col1 = fits.Column(name='img_id', format='K', array=val_ids)
-    col2 = fits.Column(name='predicted_labels', format='D', array=predicted_labels)
 
     predicted_labels = predicted_labels.flatten()
     Y_one = (predicted_labels >= thresh).astype(int)
@@ -238,9 +235,12 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, name, thresh):
     print('FP: ' + str(FP))
     print('FN: ' + str(FN))
     
-    cols = fits.ColDefs([col1, col2])
-    tbhdu = fits.BinTableHDU.from_columns(cols)
-    tbhdu.writeto(output_dir + '/' + name + '.fit', overwrite='True')
+    # TODO: i don't know what this does
+    # col1 = fits.Column(name='img_id', format='K', array=val_ids)
+    # col2 = fits.Column(name='predicted_labels', format='D', array=predicted_labels)
+    # cols = fits.ColDefs([col1, col2])
+    # tbhdu = fits.BinTableHDU.from_columns(cols)
+    # tbhdu.writeto(output_dir + '/' + name + '.fit', overwrite='True')
 
 def main():
     parser = argparse.ArgumentParser()
