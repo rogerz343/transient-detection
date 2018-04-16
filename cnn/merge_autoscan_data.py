@@ -9,11 +9,9 @@ input.
 
 import errno
 import os
-import random
 import re
 
 import numpy as np
-import pandas as pd
 import imageio
 import argparse
 
@@ -25,8 +23,9 @@ def main():
     imgs_root = args.imgs_root
 
     root_folder_name = os.path.basename(os.path.normpath(imgs_root))
+    new_folder_name = root_folder_name + '_merged/'
     try:
-        os.makedirs('./' + root_folder_name)
+        os.makedirs('./' + new_folder_name)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
@@ -43,16 +42,19 @@ def main():
         print("Error: no images found.")
         return
 
+    # convert all input images to arrays
     id_to_arrays = {}
     for path in img_paths:
         file_name_ext = os.path.basename(path)
         file_name = os.path.splitext(file_name_ext)[0]
-        match = re.match(r'(?:\d+$)|(?:.*\D(\d+)$)', file_name)
+        match = re.match(r'.*\D(\d+$)', file_name)
+        if not match:
+            match = re.match(r'(\d+$)', file_name)
         if not match:
             print('read_data: invalid filename detected. file name should '
                   + 'end with a suffix of one or more digits')
             return
-        img_id = match.group(0)
+        img_id = match.group(1)
         img_array = imageio.imread(path)
 
         if img_id not in id_to_arrays:
@@ -65,16 +67,21 @@ def main():
             id_to_arrays[img_id][2] = img_array
         else:
             print('merge_autoscan_data: invalid file name: ' + path)
+            return
     
     for img_id, channels in id_to_arrays.items():
-        if None in channels:
+        if channels[0] is None or channels[1] is None or channels[2] is None:
             print('merge_autoscan_data: could not find all three files for '
                 + 'the image with id ' + str(img_id))
+            return
         image_array_full = [channels[0], channels[1], channels[2]]
         image_array_full = np.array(image_array_full)
-        np.moveaxis(image_array_full, 0, 2)
+        image_array_full = np.transpose(image_array_full, (1, 2, 0))
         imageio.imwrite(
-            './' + root_folder_name + '/' + str(img_id) + '.gif',
+            './' + new_folder_name + '/' + str(img_id) + '.gif',
             image_array_full
         )
     print('Data has been saved to ./' + root_folder_name)
+
+if __name__ == '__main__':
+    main()

@@ -110,12 +110,14 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
     for i, path in enumerate(img_paths):
         file_name_ext = os.path.basename(path)
         file_name = os.path.splitext(file_name_ext)[0]
-        match = re.match(r'(?:\d+$)|(?:.*\D(\d+)$)', file_name)
+        match = re.match(r'.*\D(\d+$)', file_name)
+        if not match:
+            match = re.match(r'(\d+$)', file_name)
         if not match:
             print('read_data: invalid filename detected. file name should '
                   + 'end with a suffix of one or more digits')
             return
-        img_id = match.group(0)
+        img_id = match.group(1)
         img_array = imageio.imread(path)
         if img_array.shape != (width, height, channels):
             print('read_data: error: image dimensions are not consistent')

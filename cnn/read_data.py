@@ -105,7 +105,7 @@ def read_data(img_path, featurePath, max_num_img, name):
             Y[index] = featurerow.iloc[0]['OBJECT_TYPE']
 
         if index % 100 == 0:
-            print ("Iteration: ", index)
+            print("Iteration: ", index)
 
     # printing potentially useful information
     if len(Y) != len(img_vector) or len(Y) != len(idvec):
