@@ -52,18 +52,10 @@ def setupModel(channels, rows, cols):
     model = Sequential()
 
     # first layer: convolution
-    model.add(Convolution2D(512, 5, activation='relu',
+    model.add(Convolution2D(64, 5, activation='relu',
                             padding='same',
                             input_shape=(channels, rows, cols),
                             data_format='channels_first'))
-    model.add(Dropout(0.15))
-
-    # hidden layer
-    model.add(Convolution2D(256, 5, activation='relu', padding='same'))
-    model.add(Dropout(0.15))
-
-    # hidden layer
-    model.add(Convolution2D(64, 5, activation='relu', padding='same'))
     model.add(Dropout(0.15))
 
     # hidden layer
@@ -71,7 +63,7 @@ def setupModel(channels, rows, cols):
     model.add(Dropout(0.15))
 
     model.add(Flatten())
-    model.add(Dense(64, activation='relu'))
+    model.add(Dense(32, activation='relu'))
 
     # last layer: dense (prediction) with 1 output
     model.add(Dense(1, activation='sigmoid', kernel_initializer='random_uniform'))

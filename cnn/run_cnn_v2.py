@@ -1,14 +1,10 @@
 """
 run_cnn_v2.py: Trains and/or tests a CNN using the input images. The input
-data should be the output of read_data_v2.py
+data should be the output of read_data_v2.py and these files should be found
+in ./read_data_out/
 
 arguments:
-- the path to the directory containing the three .npy outputs of read_data_v2
-
-parser = argparse.ArgumentParser()
-    parser.add_argument('path_to_data', help='Path to the .npy outputs of read_data.py')
-    parser.add_argument('name', help='The suffix of the names of the .npy '
-                        + 'output files from read_data')
+- the suffix of the names of the .npy outputs files from read_data
 """
 
 from astropy.io import fits
@@ -52,18 +48,10 @@ def setup_model(width, height, channels):
     model = Sequential()
 
     # first layer: convolution
-    model.add(Convolution2D(512, 5, activation='relu',
+    model.add(Convolution2D(64, 5, activation='relu',
                             padding='same',
                             input_shape=(width, height, channels),
                             data_format='channels_last'))
-    model.add(Dropout(0.15))
-
-    # hidden layer
-    model.add(Convolution2D(256, 5, activation='relu', padding='same'))
-    model.add(Dropout(0.15))
-
-    # hidden layer
-    model.add(Convolution2D(64, 5, activation='relu', padding='same'))
     model.add(Dropout(0.15))
 
     # hidden layer
@@ -71,7 +59,7 @@ def setup_model(width, height, channels):
     model.add(Dropout(0.15))
 
     model.add(Flatten())
-    model.add(Dense(64, activation='relu'))
+    model.add(Dense(32, activation='relu'))
 
     # last layer: dense (prediction) with 1 output
     model.add(Dense(1, activation='sigmoid', kernel_initializer='random_uniform'))
@@ -124,12 +112,12 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
     model.summary()
 
     # training parameters
-    batch_size = len(train_imgs) / 20
+    batch_size = int(len(train_imgs) / 20)
     epochs = 15
     verbose = 1
     validation_data = (val_imgs, val_labels)
     shuffle = True
-    class_weights = balanced_class_weights(train_labels)
+    class_weight = balanced_class_weights(train_labels)
 
     # SGD params
     # lr = 0.001
@@ -188,7 +176,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
             verbose=verbose,
             validation_data=validation_data,
             shuffle=shuffle,
-            class_weights=class_weights
+            class_weight=class_weight
         )
     print("Finished training model")
     print(model.evaluate(x=val_imgs, y=val_labels))
@@ -201,16 +189,70 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
     return
 
 def test_model(val_imgs, val_labels, val_ids, model_name, thresh, root_path):
+    """ Tests a CNN model. This function assumes inputs are well-formed.
+
+    :type val_imgs: numpy.ndarray The array of validation images. Each image is
+        a 2 or 3-dimensional array of numbers
+    :type val_labels: numpy.ndarray The array of corresponding validation image
+        labels.
+    :type val_ids: numpy.ndarray The array ofcorresponding validation image ids.
+    :type model_name: str The name of the model, without file extensions (this
+        should be the output file of train_model)
+    :type thresh: float The threshold for determining whether an image is
+        classed as 0 or 1. This value should be between 0 and 1.
+    :type root_path: str The directory path to the model. Also used to save
+        model validation metrics.
+    """
+    # normalize images
+    for i in range(val_imgs.shape[0]):
+        val_imgs[i] = normalize_img(val_imgs[i])
+    
+    # find predictions
+    os.chdir(root_path)
+    for file in glob.glob('*.hd5'):
+        model_name = file[:-4]
+        print('=' * (28 + len(model_name)))
+        print('=====validating model: ' + model_name + '=====')
+        print('=' * (28 + len(model_name)))
+
+        _, width, height, channels = val_imgs.shape
+        model = setup_model(width, height, channels)
+        model.load_weights(model_name + '.hd5')
+        predicted_labels = model.predict(val_imgs)
+
+        print(predicted_labels)   # TODO: get rid of this
+        
+        col1 = fits.Column(name='img_id', format='K', array=val_ids)
+        col2 = fits.Column(name='predicted_labels', format='D', array=predicted_labels)
+
+        predicted_labels = predicted_labels.flatten()
+        Y_one = (predicted_labels >= thresh).astype(int)
+        Y_zero = (predicted_labels < thresh).astype(int)
+        true_one = val_labels
+        true_zero = 1 - val_labels
+
+        TP = np.count_nonzero(Y_one * true_one)
+        TN = np.count_nonzero(Y_zero * true_zero)
+        FP = np.count_nonzero(Y_one * true_zero)
+        FN = np.count_nonzero(Y_zero * true_one)
+
+        print('TP: ' + str(TP))
+        print('TN: ' + str(TN))
+        print('FP: ' + str(FP))
+        print('FN: ' + str(FN))
+        
+        cols = fits.ColDefs([col1, col2])
+        tbhdu = fits.BinTableHDU.from_columns(cols)
+        tbhdu.writeto(model_name + '.fit', overwrite='True')
     return
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('path_to_data', help='Path to the .npy outputs of read_data.py')
     parser.add_argument('name', help='The suffix of the names of the .npy '
                         + 'output files from read_data')
     args = parser.parse_args()
     
-    root_path = args.path_to_data
+    root_path = './read_data_out/'
     name = args.name
 
     # proportion of input data to be used for training

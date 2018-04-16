@@ -161,7 +161,7 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
             raise
     np.save("./read_data_out/img_arrays_" + name + ".npy", img_arrays_np) 
     np.save("./read_data_out/img_labels_" + name + ".npy", img_labels_np) 
-    np.save("./read_data_out/img_ids" + name + ".npy", img_ids_np)
+    np.save("./read_data_out/img_ids_" + name + ".npy", img_ids_np)
     print('Data has been saved to ./read_data_out/')
 
 def main():
@@ -180,7 +180,7 @@ def main():
     print('Reading image labels from: ' + args.labels_file)
 
     img_paths = get_img_paths(args.imgs_root, args.file_ext)
-    read_data(img_paths, args.labels_file, args.max_num_imgs, args.name)
+    read_data(img_paths, args.labels_file, int(args.max_num_imgs), args.name)
 
 if __name__ == '__main__':
     main()
