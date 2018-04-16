@@ -114,8 +114,12 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
         if not match:
             print('read_data: invalid filename detected. file name should '
                   + 'end with a suffix of one or more digits')
+            return
         img_id = match.group(0)
         img_array = imageio.imread(path)
+        if img_array.shape != (width, height, channels):
+            print('read_data: error: image dimensions are not consistent')
+            return
         row = labels_table.loc[labels_table['ID'] == int(img_id)]
         label = row.iloc[0]['OBJECT_TYPE']
         if label != 0 and label != 1:
