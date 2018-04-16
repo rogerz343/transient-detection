@@ -13,35 +13,18 @@ run_cnn.py: Trains and/or tests a CNN for the given input data.
 
 # import default packages
 from astropy.io import fits
-from astropy.table import Table
-from astropy.modeling.models import Sersic2D
 
-from math import log10
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import random
-
-from scipy import misc
-from scipy.ndimage import zoom
-from scipy.ndimage.interpolation import rotate
 
 import argparse
 from collections import Counter
 import os
-import pdb
 import glob
 
 # import keras packages
-from keras.preprocessing.image import ImageDataGenerator
-from keras.optimizers import rmsprop
 import keras
-
-from keras import backend as K
-K.set_image_dim_ordering('th')
-                         
-from keras.models import model_from_json
-from keras.models import model_from_yaml
+from keras.preprocessing.image import ImageDataGenerator
 
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
