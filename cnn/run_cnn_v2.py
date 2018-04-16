@@ -1,5 +1,14 @@
 """
-run_cnn_v2.py:
+run_cnn_v2.py: Trains and/or tests a CNN using the input images. The input
+data should be the output of read_data_v2.py
+
+arguments:
+- the path to the directory containing the three .npy outputs of read_data_v2
+
+parser = argparse.ArgumentParser()
+    parser.add_argument('path_to_data', help='Path to the .npy outputs of read_data.py')
+    parser.add_argument('name', help='The suffix of the names of the .npy '
+                        + 'output files from read_data')
 """
 
 from astropy.io import fits
@@ -233,3 +242,6 @@ def main():
     # test model
     accept_threshold = 0.5
     testModel(val_imgs, val_labels, val_ids, model_name, accept_threshold, root_path)
+
+if __name__ == '__main__':
+    main()

@@ -132,14 +132,14 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
     # post-processing, printing information, etc.
     img_arrays, img_labels, img_ids = \
         throw_out_data(img_arrays, img_labels, img_ids, \
-        0, lambda x y z: y == 1)
+        0, lambda x, y, z: y == 1)
     
     num_pos = 0
     num_neg = 0
     for label in img_labels:
         if label == 1:
             num_pos += 1
-        else
+        else:
             num_neg += 1
     print('Number of positive samples: ' + str(num_pos))
     print('Number of negative samples: ' + str(num_neg))
