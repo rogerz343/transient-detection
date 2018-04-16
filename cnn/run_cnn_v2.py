@@ -200,6 +200,9 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
         json_file.write(model_json)
     return
 
+def test_model(val_imgs, val_labels, val_ids, model_name, thresh, root_path):
+    return
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('path_to_data', help='Path to the .npy outputs of read_data.py')
@@ -241,7 +244,7 @@ def main():
     
     # test model
     accept_threshold = 0.5
-    testModel(val_imgs, val_labels, val_ids, model_name, accept_threshold, root_path)
+    test_model(val_imgs, val_labels, val_ids, model_name, accept_threshold, root_path)
 
 if __name__ == '__main__':
     main()
