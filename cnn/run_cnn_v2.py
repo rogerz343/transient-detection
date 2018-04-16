@@ -276,18 +276,19 @@ def main():
     labels = np.load('./read_data_out/img_labels_' + name + '.npy')
     image_ids = np.load('./read_data_out/img_ids_' + name + '.npy')
     
+    # TODO: fix this. currently changed to not randomize so our code is deterministic
     print('Selecting a random sample to train.')
     num_img = np.size(images, 0)
     ntrain = int(trainRatio * num_img)
     all_indices = list(range(0, num_img))
-    random.shuffle(all_indices)
+    # random.shuffle(all_indices)
     
     train_indices = all_indices[:ntrain]
     val_indices = all_indices[ntrain:num_img]
 
     train_imgs = images[train_indices]
     train_labels = labels[train_indices].astype(int)
-    # train_ids = image_ids[train_indices] # use for debugging
+
     val_imgs = images[val_indices]
     val_labels = labels[val_indices].astype(int)   
     val_ids = image_ids[val_indices]
