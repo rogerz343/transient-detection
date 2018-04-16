@@ -1,10 +1,11 @@
 """
-run_cnn_v2.py: Trains and/or tests a CNN using the input images. The input
-data should be the output of read_data_v2.py and these files should be found
-in ./read_data_out/
+run_cnn_v2.py: Trains a CNN using the input images. The input data should be
+the output of read_data_v2.py and these files should be found in
+'./read_data_out/'. The output files will be saved to './run_cnn_out/'
 
 arguments:
-- the suffix of the names of the .npy outputs files from read_data
+- the suffix of the names of the .npy outputs files from read_data, used as
+  the model name
 """
 
 from astropy.io import fits
@@ -14,7 +15,7 @@ import numpy as np
 import random
 import argparse
 import os
-import glob
+import errno
 
 # import keras
 import keras
@@ -64,7 +65,7 @@ def setup_model(width, height, channels):
     # last layer: dense (prediction) with 1 output
     model.add(Dense(1, activation='sigmoid', kernel_initializer='random_uniform'))
 
-    print("Compiling...")
+    print('Compiling...')
     
     model.compile(loss='binary_crossentropy', 
                   optimizer='adam', metrics=['accuracy'])
@@ -84,7 +85,7 @@ def balanced_class_weights(labels):
     max_freq = max(counter.values())  # num of times the highest-freq class appears
     return {label: float(max_freq) / count for label, count in counter.items()}
 
-def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
+def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name):
     """ Trains a CNN. This function assumes inputs are well-formed.
 
     :type train_imgs: numpy.ndarray The array of train images. Each image is a
@@ -96,6 +97,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
         during training to measure progress.
     :type val_labels: numpy.ndarray The array of corresponding validation image
         labels.
+    :type name: str A string used to name the output files.
     """
     print('========================')
     print('=====Training model=====')
@@ -139,7 +141,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
     )
 
     # save model after every epoch
-    ModelCheckpoint(model_name + '_best.hd5', save_best_only=True)
+    ModelCheckpoint(output_dir + '/' + name + '_best.hd5', save_best_only=True)
 
     data_augmentation = False
     if data_augmentation:
@@ -178,17 +180,17 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
             shuffle=shuffle,
             class_weight=class_weight
         )
-    print("Finished training model")
+    print('Finished training model')
     print(model.evaluate(x=val_imgs, y=val_labels))
     
     print('Saving model.')
-    model.save_weights(model_name + '.hd5', overwrite=True)
+    model.save_weights(output_dir + '/' + name + '.hd5', overwrite=True)
     model_json = model.to_json()
-    with open(os.path.splitext(model_name)[0] + '.json', 'w') as json_file:
+    with open(name + '.json', 'w') as json_file:
         json_file.write(model_json)
     return
 
-def test_model(val_imgs, val_labels, val_ids, model_name, thresh, root_path):
+def test_model(val_imgs, val_labels, val_ids, output_dir, name, thresh):
     """ Tests a CNN model. This function assumes inputs are well-formed.
 
     :type val_imgs: numpy.ndarray The array of validation images. Each image is
@@ -196,72 +198,72 @@ def test_model(val_imgs, val_labels, val_ids, model_name, thresh, root_path):
     :type val_labels: numpy.ndarray The array of corresponding validation image
         labels.
     :type val_ids: numpy.ndarray The array ofcorresponding validation image ids.
-    :type model_name: str The name of the model, without file extensions (this
+    :type name: str The name of the model, without file extensions (this
         should be the output file of train_model)
     :type thresh: float The threshold for determining whether an image is
         classed as 0 or 1. This value should be between 0 and 1.
-    :type root_path: str The directory path to the model. Also used to save
-        model validation metrics.
     """
     # normalize images
     for i in range(val_imgs.shape[0]):
         val_imgs[i] = normalize_img(val_imgs[i])
     
     # find predictions
-    os.chdir(root_path)
-    for file in glob.glob('*.hd5'):
-        model_name = file[:-4]
-        print('=' * (28 + len(model_name)))
-        print('=====validating model: ' + model_name + '=====')
-        print('=' * (28 + len(model_name)))
+    print('=' * (28 + len(name)))
+    print('=====validating model: ' + name + '=====')
+    print('=' * (28 + len(name)))
 
-        _, width, height, channels = val_imgs.shape
-        model = setup_model(width, height, channels)
-        model.load_weights(model_name + '.hd5')
-        predicted_labels = model.predict(val_imgs)
+    _, width, height, channels = val_imgs.shape
+    model = setup_model(width, height, channels)
+    model.load_weights(output_dir + '/' + name + '.hd5')
+    predicted_labels = model.predict(val_imgs)
 
-        print(predicted_labels)   # TODO: get rid of this
-        
-        col1 = fits.Column(name='img_id', format='K', array=val_ids)
-        col2 = fits.Column(name='predicted_labels', format='D', array=predicted_labels)
+    print(predicted_labels)   # TODO: get rid of this
+    
+    col1 = fits.Column(name='img_id', format='K', array=val_ids)
+    col2 = fits.Column(name='predicted_labels', format='D', array=predicted_labels)
 
-        predicted_labels = predicted_labels.flatten()
-        Y_one = (predicted_labels >= thresh).astype(int)
-        Y_zero = (predicted_labels < thresh).astype(int)
-        true_one = val_labels
-        true_zero = 1 - val_labels
+    predicted_labels = predicted_labels.flatten()
+    Y_one = (predicted_labels >= thresh).astype(int)
+    Y_zero = (predicted_labels < thresh).astype(int)
+    true_one = val_labels
+    true_zero = 1 - val_labels
 
-        TP = np.count_nonzero(Y_one * true_one)
-        TN = np.count_nonzero(Y_zero * true_zero)
-        FP = np.count_nonzero(Y_one * true_zero)
-        FN = np.count_nonzero(Y_zero * true_one)
+    TP = np.count_nonzero(Y_one * true_one)
+    TN = np.count_nonzero(Y_zero * true_zero)
+    FP = np.count_nonzero(Y_one * true_zero)
+    FN = np.count_nonzero(Y_zero * true_one)
 
-        print('TP: ' + str(TP))
-        print('TN: ' + str(TN))
-        print('FP: ' + str(FP))
-        print('FN: ' + str(FN))
-        
-        cols = fits.ColDefs([col1, col2])
-        tbhdu = fits.BinTableHDU.from_columns(cols)
-        tbhdu.writeto(model_name + '.fit', overwrite='True')
-    return
+    print('TP: ' + str(TP))
+    print('TN: ' + str(TN))
+    print('FP: ' + str(FP))
+    print('FN: ' + str(FN))
+    
+    cols = fits.ColDefs([col1, col2])
+    tbhdu = fits.BinTableHDU.from_columns(cols)
+    tbhdu.writeto(output_dir + '/' + name + '.fit', overwrite='True')
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('name', help='The suffix of the names of the .npy '
                         + 'output files from read_data')
     args = parser.parse_args()
-    
-    root_path = './read_data_out/'
     name = args.name
+
+    # create ouput directory (if doesn't exist)
+    OUTPUT_DIR = './run_cnn_out/'
+    try:
+        os.makedirs(OUTPUT_DIR)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
 
     # proportion of input data to be used for training
     trainRatio = 0.7
     
     print('Loading .npy files.')
-    images = np.load(root_path + "img_arrays_" + name + ".npy")
-    labels = np.load(root_path + "img_labels_" + name + ".npy")
-    image_ids = np.load(root_path + "img_ids_" + name + ".npy")
+    images = np.load('./read_data_out/img_arrays_' + name + '.npy')
+    labels = np.load('./read_data_out/img_labels_' + name + '.npy')
+    image_ids = np.load('./read_data_out/img_ids_' + name + '.npy')
     
     print('Selecting a random sample to train.')
     num_img = np.size(images, 0)
@@ -274,19 +276,17 @@ def main():
 
     train_imgs = images[train_indices]
     train_labels = labels[train_indices].astype(int)
-    train_ids = image_ids[train_indices]
+    # train_ids = image_ids[train_indices] # use for debugging
     val_imgs = images[val_indices]
     val_labels = labels[val_indices].astype(int)   
     val_ids = image_ids[val_indices]
 
-    model_name = root_path + name
-
     # train model
-    train_model(train_imgs, train_labels, val_imgs, val_labels, model_name)
+    train_model(train_imgs, train_labels, val_imgs, val_labels, OUTPUT_DIR, name)
     
     # test model
     accept_threshold = 0.5
-    test_model(val_imgs, val_labels, val_ids, model_name, accept_threshold, root_path)
+    test_model(val_imgs, val_labels, val_ids, OUTPUT_DIR, name, accept_threshold)
 
 if __name__ == '__main__':
     main()

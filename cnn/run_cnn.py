@@ -1,4 +1,6 @@
 """
+*** DEPRECATED: DO NOT USE ***
+
 run_cnn.py: Trains and/or tests a CNN for the given input data.
     param: The file path to the directory containing the .npy outputs of
            read_data.py

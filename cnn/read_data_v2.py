@@ -159,9 +159,9 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    np.save("./read_data_out/img_arrays_" + name + ".npy", img_arrays_np) 
-    np.save("./read_data_out/img_labels_" + name + ".npy", img_labels_np) 
-    np.save("./read_data_out/img_ids_" + name + ".npy", img_ids_np)
+    np.save('./read_data_out/img_arrays_' + name + '.npy', img_arrays_np) 
+    np.save('./read_data_out/img_labels_' + name + '.npy', img_labels_np) 
+    np.save('./read_data_out/img_ids_' + name + '.npy', img_ids_np)
     print('Data has been saved to ./read_data_out/')
 
 def main():
