@@ -89,7 +89,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     """ Trains a CNN. This function assumes inputs are well-formed.
 
     :type train_imgs: numpy.ndarray The array of train images. Each image is a
-        2 or 3-dimensional array of numbers
+        3-dimensional array of numbers
     :type train_labels: numpy.ndarray The array of corresponding train image
         labels.
     :type val_imgs: numpy.ndarray The array of validation images. These will
@@ -107,14 +107,14 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     for i in range(train_imgs.shape[0]):
         train_imgs[i] = normalize_img(train_imgs[i])
     
-    width, height, channels = np.shape(train_imgs[0])
+    width, height, channels = train_imgs[0].shape
 
     # set up model
     model = setup_model(width, height, channels)
     model.summary()
 
     # training parameters
-    batch_size = int(len(train_imgs) / 20)
+    batch_size = len(train_imgs) # int(len(train_imgs) / 20)
     epochs = 15
     verbose = 1
     validation_data = (val_imgs, val_labels)
@@ -280,6 +280,11 @@ def main():
     val_imgs = images[val_indices]
     val_labels = labels[val_indices].astype(int)   
     val_ids = image_ids[val_indices]
+
+    # remove last channel if there are 4 color channels
+    if len(train_imgs[0].shape) == 3 and train_imgs[0].shape[2] > 3:
+        train_imgs = train_imgs[:, :, :, 0:3]
+        val_imgs = val_imgs[:, :, :, 0:3]
 
     # train model
     train_model(train_imgs, train_labels, val_imgs, val_labels, OUTPUT_DIR, name)

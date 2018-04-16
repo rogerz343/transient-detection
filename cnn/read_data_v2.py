@@ -101,7 +101,12 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
         print("Error: no images found.")
         return
     num_imgs = min(max_num_imgs, len(img_paths))
-    width, height, channels = imageio.imread(img_paths[0]).shape
+    sample_img = imageio.imread(img_paths[0])
+    if len(sample_img.shape) > 2:
+        width, height, channels = sample_img.shape
+    else:
+        width, height = sample_img.shape
+        channels = 1
     labels_table = pd.read_csv(labels_file)
 
     img_arrays = []
@@ -119,6 +124,8 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
             return
         img_id = match.group(1)
         img_array = imageio.imread(path)
+        if len(img_array.shape) < 3:
+            img_array = img_array[:, :, np.newaxis]
         if img_array.shape != (width, height, channels):
             print('read_data: error: image dimensions are not consistent')
             return
