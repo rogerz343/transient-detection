@@ -6,6 +6,10 @@ the output of read_data_v2.py and these files should be found in
 arguments:
 - the suffix of the names of the .npy outputs files from read_data, used as
   the model name
+
+Additional notes
+- parameters of the CNN to optimize can be found by searching for
+  "parameters to change"
 """
 
 from astropy.io import fits
@@ -38,6 +42,7 @@ def normalize_img(image):
         return image
     return image / max_val
 
+# parameters to change: the model layout
 def setup_model(width, height, channels):
     """ Sets up and returns the keras model
 
@@ -49,10 +54,14 @@ def setup_model(width, height, channels):
     model = Sequential()
 
     # first layer: convolution
-    model.add(Convolution2D(64, 5, activation='relu',
+    model.add(Convolution2D(128, 5, activation='relu',
                             padding='same',
                             input_shape=(width, height, channels),
                             data_format='channels_last'))
+    model.add(Dropout(0.15))
+
+    # hidden layer
+    model.add(Convolution2D(64, 5, activation='relu', padding='same'))
     model.add(Dropout(0.15))
 
     # hidden layer
@@ -71,6 +80,7 @@ def setup_model(width, height, channels):
                   optimizer='adam', metrics=['accuracy'])
     return model
 
+# parameters to change: the weights for labels 0 and 1
 def balanced_class_weights(labels):
     """ Assigns weights to each label class based on their representation in
     the training data
@@ -113,7 +123,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     model = setup_model(width, height, channels)
     model.summary()
 
-    # training parameters
+    # parameters to change: training parameters
     batch_size = len(train_imgs) # int(len(train_imgs) / 20)
     epochs = 15
     verbose = 1
@@ -131,6 +141,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     # nb_dense = 64
     # output params
 
+    # parameters to change: EarlyStopping
     # stop early (don't go through all epochs) if model converges
     EarlyStopping(
         monitor='val_loss',
