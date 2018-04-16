@@ -96,7 +96,7 @@ def balanced_class_weights(labels):
     max_freq = max(counter.values())  # num of times the highest-freq class appears
     return {label: float(max_freq) / count for label, count in counter.items()}
 
-def trainModel(train_imgs, train_labels, val_imgs, val_labels, model_name):
+def train_model(train_imgs, train_labels, val_imgs, val_labels, model_name):
     """ Trains a CNN. This function assumes inputs are well-formed.
 
     :type train_imgs: numpy.ndarray The array of train images. Each image is a
@@ -127,7 +127,7 @@ def trainModel(train_imgs, train_labels, val_imgs, val_labels, model_name):
     batch_size = len(train_imgs) / 20
     epochs = 15
     verbose = 1
-    validation_data = (val_ims, val_labels)
+    validation_data = (val_imgs, val_labels)
     shuffle = True
     class_weights = balanced_class_weights(train_labels)
 
@@ -153,6 +153,7 @@ def trainModel(train_imgs, train_labels, val_imgs, val_labels, model_name):
     # save model after every epoch
     ModelCheckpoint(model_name + '_best.hd5', save_best_only=True)
 
+    data_augmentation = False
     if data_augmentation:
         print('Using real time data augmentation.')
         # datagen = ImageDataGenerator(
@@ -186,7 +187,7 @@ def trainModel(train_imgs, train_labels, val_imgs, val_labels, model_name):
             epochs=epochs,
             verbose=verbose,
             validation_data=validation_data,
-            shuffle=True,
+            shuffle=shuffle,
             class_weights=class_weights
         )
     print("Finished training model")
@@ -236,8 +237,7 @@ def main():
     model_name = root_path + name
 
     # train model
-    trainModel(train_imgs, train_labels, train_ids, 
-               val_imgs, val_labels, val_ids, model_name)
+    train_model(train_imgs, train_labels, val_imgs, val_labels, model_name)
     
     # test model
     accept_threshold = 0.5
