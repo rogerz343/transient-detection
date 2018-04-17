@@ -140,6 +140,7 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
         img_ids.append(img_id)
 
         print('Reading images: ' + str(int(100 * i / num_imgs)) + '%', end='\r')
+    print('Reading images: 100%', end='\r')
     print()
 
     # post-processing, printing information, etc.

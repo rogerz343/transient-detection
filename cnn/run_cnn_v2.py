@@ -124,8 +124,8 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     model.summary()
 
     # parameters to change: training parameters
-    batch_size = len(train_imgs) # int(len(train_imgs) / 20)
-    epochs = 15
+    batch_size = min(int(len(train_imgs) * 0.05, 256))
+    epochs = 30
     verbose = 1
     validation_data = (val_imgs, val_labels)
     shuffle = True
