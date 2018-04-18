@@ -76,6 +76,7 @@ def setup_model(width, height, channels):
 
     print('Compiling...')
     
+    # currently using adam optimizer. could also consider using SGD
     model.compile(loss='binary_crossentropy', 
                   optimizer='adam', metrics=['accuracy'])
     return model
@@ -131,16 +132,6 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     shuffle = True
     class_weight = balanced_class_weights(train_labels)
 
-    # SGD params
-    # lr = 0.001
-    # decay = 0 
-    # momentum = 0.9
-    # nesterov = True
-    # numSteps = 4
-    # depth = 32
-    # nb_dense = 64
-    # output params
-
     # parameters to change: EarlyStopping
     # stop early (don't go through all epochs) if model converges
     EarlyStopping(
@@ -152,8 +143,9 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     )
 
     # save model after every epoch
-    ModelCheckpoint(output_dir + '/' + name + '_best.hd5', save_best_only=True)
+    checkpointer = ModelCheckpoint(output_dir + '/' + name + '_best.hd5', save_best_only=True)
 
+    # possible future feature
     data_augmentation = False
     if data_augmentation:
         print('Using real time data augmentation.')
@@ -189,7 +181,8 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
             verbose=verbose,
             validation_data=validation_data,
             shuffle=shuffle,
-            class_weight=class_weight
+            class_weight=class_weight,
+            callbacks=[checkpointer]
         )
     print('Finished training model')
     print(model.evaluate(x=val_imgs, y=val_labels))
