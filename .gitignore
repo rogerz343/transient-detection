@@ -1,6 +1,4 @@
 # raw data files
-data_fits/
-data_gifs/
 *.gif
 *.fits
 
