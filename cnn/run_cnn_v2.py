@@ -290,7 +290,8 @@ def main():
 
     # begin troll
     for i in range(images):
-        images[i] = images[i][10:40, 10:40, :]
+        image_new = images[i][10:40, 10:40, :]
+        images[i] = image_new
     # end troll
     
     print('Selecting a random sample to train.')
