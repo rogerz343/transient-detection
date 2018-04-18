@@ -33,7 +33,7 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten
 
 # make keras not eat threads for breakfast
 # cori = 16, cori job = 32, personal computer = 8
-MAX_THREADS = 6
+MAX_THREADS = 16
 import tensorflow as tf
 config = tf.ConfigProto(intra_op_parallelism_threads=MAX_THREADS,
                         inter_op_parallelism_threads=MAX_THREADS,
@@ -65,13 +65,17 @@ def setup_model(width, height, channels):
     model = Sequential()
 
     # first layer: convolution
-    model.add(Convolution2D(128, 5, activation='relu',
+    model.add(Convolution2D(128, 3, activation='relu',
                             padding='same',
                             input_shape=(width, height, channels),
                             data_format='channels_last'))
 
     # hidden layer
     model.add(Convolution2D(64, 4, activation='relu', padding='same'))
+    model.add(Dropout(0.1))
+
+    # hidden layer
+    model.add(Convolution2D(64, 5, activation='relu', padding='same'))
     model.add(Dropout(0.1))
 
     # hidden layer
@@ -283,6 +287,11 @@ def main():
     images = np.load('./read_data_out/img_arrays_' + name + '.npy')
     labels = np.load('./read_data_out/img_labels_' + name + '.npy')
     image_ids = np.load('./read_data_out/img_ids_' + name + '.npy')
+
+    # begin troll
+    for i in range(images):
+        images[i] = images[i][10:40, 10:40, :]
+    # end troll
     
     print('Selecting a random sample to train.')
     num_img = np.size(images, 0)
