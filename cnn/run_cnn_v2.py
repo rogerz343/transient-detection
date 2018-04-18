@@ -31,6 +31,15 @@ from keras.models import Sequential
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 
+# make keras not eat threads for breakfast
+import tensorflow as tf
+config = tf.ConfigProto(intra_op_parallelism_threads=64,
+                        inter_op_parallelism_threads=64,
+                        allow_soft_placement=True)
+                        # device_count={'CPU': args.jobs})
+session = tf.Session(config=config)
+keras.backend.set_session(session)
+
 def normalize_img(image):
     """ Returns the image array such that all pixel values are between 0 and 1
 
@@ -54,7 +63,7 @@ def setup_model(width, height, channels):
     model = Sequential()
 
     # first layer: convolution
-    model.add(Convolution2D(32, 5, activation='relu',
+    model.add(Convolution2D(128, 5, activation='relu',
                             padding='same',
                             input_shape=(width, height, channels),
                             data_format='channels_last'))
@@ -63,15 +72,14 @@ def setup_model(width, height, channels):
     model.add(Convolution2D(64, 4, activation='relu', padding='same'))
 
     # hidden layer
-    model.add(Convolution2D(128, 3, activation='relu', padding='same'))
+    model.add(Convolution2D(64, 3, activation='relu', padding='same'))
 
     # hidden layer
     model.add(Convolution2D(32, 2, activation='relu', padding='same'))
 
     # flatten to fully connected NN
     model.add(Flatten())
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(16, activation='relu'))
+    model.add(Dense(32, activation='relu'))
 
     # last layer: dense (prediction) with 1 output
     model.add(Dense(1, activation='sigmoid', kernel_initializer='random_uniform'))
@@ -126,8 +134,8 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     model.summary()
 
     # parameters to change: training parameters
-    batch_size = 64
-    epochs = 20
+    batch_size = 48
+    epochs = 10
     verbose = 1
     validation_data = (val_imgs, val_labels)
     shuffle = True
@@ -135,7 +143,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
 
     # parameters to change: EarlyStopping
     # stop early (don't go through all epochs) if model converges
-    EarlyStopping(
+    early_stopping = EarlyStopping(
         monitor='val_loss',
         min_delta=0,
         patience=0,
@@ -183,7 +191,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
             validation_data=validation_data,
             shuffle=shuffle,
             class_weight=class_weight,
-            callbacks=[checkpointer]
+            callbacks=[checkpointer, early_stopping]
         )
     print('Finished training model')
     print(model.evaluate(x=val_imgs, y=val_labels))
@@ -273,12 +281,11 @@ def main():
     labels = np.load('./read_data_out/img_labels_' + name + '.npy')
     image_ids = np.load('./read_data_out/img_ids_' + name + '.npy')
     
-    # TODO: fix this. currently changed to not randomize so our code is deterministic
     print('Selecting a random sample to train.')
     num_img = np.size(images, 0)
     ntrain = int(trainRatio * num_img)
     all_indices = list(range(0, num_img))
-    # random.shuffle(all_indices)
+    random.shuffle(all_indices)
     
     train_indices = all_indices[:ntrain]
     val_indices = all_indices[ntrain:num_img]
