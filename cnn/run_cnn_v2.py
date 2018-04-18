@@ -93,7 +93,7 @@ def setup_model(width, height, channels):
     print('Compiling...')
     
     # choose either adam optimizer or SGD optimizer
-    model.compile(loss='mse', optimizer='sgd', metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer='sgd', metrics=['accuracy'])
     return model
 
 # parameters to change: the weights for labels 0 and 1
