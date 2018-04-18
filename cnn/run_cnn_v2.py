@@ -32,9 +32,11 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 
 # make keras not eat threads for breakfast
+# cori = 16, cori job = 32, personal computer = 8
+MAX_THREADS = 6
 import tensorflow as tf
-config = tf.ConfigProto(intra_op_parallelism_threads=32,
-                        inter_op_parallelism_threads=32,
+config = tf.ConfigProto(intra_op_parallelism_threads=MAX_THREADS,
+                        inter_op_parallelism_threads=MAX_THREADS,
                         allow_soft_placement=True)
                         # device_count={'CPU': args.jobs})
 session = tf.Session(config=config)
@@ -70,16 +72,20 @@ def setup_model(width, height, channels):
 
     # hidden layer
     model.add(Convolution2D(64, 4, activation='relu', padding='same'))
+    model.add(Dropout(0.1))
 
     # hidden layer
     model.add(Convolution2D(64, 3, activation='relu', padding='same'))
+    model.add(Dropout(0.1))
 
     # hidden layer
     model.add(Convolution2D(32, 2, activation='relu', padding='same'))
+    model.add(Dropout(0.1))
 
     # flatten to fully connected NN
     model.add(Flatten())
     model.add(Dense(32, activation='relu'))
+    model.add(Dropout(0.1))
 
     # last layer: dense (prediction) with 1 output
     model.add(Dense(1, activation='sigmoid', kernel_initializer='random_uniform'))
