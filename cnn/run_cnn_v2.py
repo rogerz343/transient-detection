@@ -54,31 +54,32 @@ def setup_model(width, height, channels):
     model = Sequential()
 
     # first layer: convolution
-    model.add(Convolution2D(128, 5, activation='relu',
+    model.add(Convolution2D(32, 5, activation='relu',
                             padding='same',
                             input_shape=(width, height, channels),
                             data_format='channels_last'))
-    model.add(Dropout(0.15))
 
     # hidden layer
-    model.add(Convolution2D(64, 5, activation='relu', padding='same'))
-    model.add(Dropout(0.15))
+    model.add(Convolution2D(64, 4, activation='relu', padding='same'))
 
     # hidden layer
-    model.add(Convolution2D(32, 5, activation='relu', padding='same'))
-    model.add(Dropout(0.15))
+    model.add(Convolution2D(128, 3, activation='relu', padding='same'))
 
+    # hidden layer
+    model.add(Convolution2D(32, 2, activation='relu', padding='same'))
+
+    # flatten to fully connected NN
     model.add(Flatten())
-    model.add(Dense(32, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(16, activation='relu'))
 
     # last layer: dense (prediction) with 1 output
     model.add(Dense(1, activation='sigmoid', kernel_initializer='random_uniform'))
 
     print('Compiling...')
     
-    # currently using adam optimizer. could also consider using SGD
-    model.compile(loss='binary_crossentropy', 
-                  optimizer='adam', metrics=['accuracy'])
+    # choose either adam optimizer or SGD optimizer
+    model.compile(loss='mse', optimizer='sgd', metrics=['accuracy'])
     return model
 
 # parameters to change: the weights for labels 0 and 1
@@ -125,8 +126,8 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
     model.summary()
 
     # parameters to change: training parameters
-    batch_size = min(int(len(train_imgs) * 0.05, 256))
-    epochs = 30
+    batch_size = 64
+    epochs = 20
     verbose = 1
     validation_data = (val_imgs, val_labels)
     shuffle = True
@@ -238,6 +239,9 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, name, thresh):
     print('TN: ' + str(TN))
     print('FP: ' + str(FP))
     print('FN: ' + str(FN))
+
+    print('Missed detection rate: ' + str(FN / (TP + FN)))
+    print('False positive rate: ' + str(FP / (TN + FP)))
     
     # TODO: i don't know what this does
     # col1 = fits.Column(name='img_id', format='K', array=val_ids)
