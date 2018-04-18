@@ -33,8 +33,8 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten
 
 # make keras not eat threads for breakfast
 import tensorflow as tf
-config = tf.ConfigProto(intra_op_parallelism_threads=64,
-                        inter_op_parallelism_threads=64,
+config = tf.ConfigProto(intra_op_parallelism_threads=32,
+                        inter_op_parallelism_threads=32,
                         allow_soft_placement=True)
                         # device_count={'CPU': args.jobs})
 session = tf.Session(config=config)
