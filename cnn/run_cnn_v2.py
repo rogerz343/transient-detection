@@ -149,13 +149,14 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
 
     # parameters to change: EarlyStopping
     # stop early (don't go through all epochs) if model converges
-    early_stopping = EarlyStopping(
-        monitor='val_loss',
-        min_delta=0,
-        patience=0,
-        verbose=0,
-        mode='auto'
-    )
+    # NOTE: DO NOT USE THIS UNLESS YOU KNOW WHAT YOU ARE DOING
+    # early_stopping = EarlyStopping(
+    #     monitor='val_loss',
+    #     min_delta=0,
+    #     patience=0,
+    #     verbose=0,
+    #     mode='auto'
+    # )
 
     # save model after every epoch
     checkpointer = ModelCheckpoint(output_dir + '/' + name + '_best.hd5', save_best_only=True)
@@ -197,7 +198,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, name
             validation_data=validation_data,
             shuffle=shuffle,
             class_weight=class_weight,
-            callbacks=[checkpointer, early_stopping]
+            callbacks=[checkpointer]
         )
     print('Finished training model')
     print(model.evaluate(x=val_imgs, y=val_labels))
