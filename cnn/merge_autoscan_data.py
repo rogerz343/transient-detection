@@ -1,5 +1,4 @@
 """
-*** DEPRECATED: this was a bad idea ***
 
 merge_autoscan_data.py: Converts 'diff', 'srch', and 'temp' files into one
 image with 3 channels. The terms 'diff', 'srch', and 'temp' refer specifically
