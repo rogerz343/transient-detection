@@ -15,3 +15,7 @@ read_data_out/
 run_cnn_out/
 *.hd5
 *.fit
+
+# batch scripts
+*.sh
+*.sl
