@@ -33,7 +33,7 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten
 
 # make keras not eat threads for breakfast
 # cori = 16, cori job = 32, personal computer = 8
-MAX_THREADS = 6
+MAX_THREADS = 16
 import tensorflow as tf
 config = tf.ConfigProto(intra_op_parallelism_threads=MAX_THREADS,
                         inter_op_parallelism_threads=MAX_THREADS,
