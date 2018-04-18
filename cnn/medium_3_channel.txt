@@ -1,0 +1,70 @@
+python ./run_cnn_v2.py medium_3_channel
+/global/homes/l/liuto/.conda/envs/convNet/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.   from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+2018-04-18 12:16:26.998401: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+Loading .npy files.
+Selecting a random sample to train.
+========================
+=====Training model=====
+========================
+Compiling...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+conv2d_1 (Conv2D)            (None, 51, 51, 128)       9728
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 51, 51, 64)        131136
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 51, 51, 64)        0
+_________________________________________________________________
+conv2d_3 (Conv2D)            (None, 51, 51, 64)        36928
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 51, 51, 64)        0
+_________________________________________________________________
+conv2d_4 (Conv2D)            (None, 51, 51, 32)        8224
+_________________________________________________________________
+dropout_3 (Dropout)          (None, 51, 51, 32)        0
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 83232)             0
+_________________________________________________________________
+dense_1 (Dense)              (None, 32)                2663456
+_________________________________________________________________
+dropout_4 (Dropout)          (None, 32)                0
+_________________________________________________________________
+dense_2 (Dense)              (None, 1)                 33
+=================================================================
+Total params: 2,849,505 Trainable params: 2,849,505
+Non-trainable params: 0
+_________________________________________________________________
+Not using data augmentation.
+Train on 12511 samples, validate on 5363 samples
+Epoch 1/10 12511/12511 [==============================] - 375s 30ms/step - loss: 0.3798 - acc: 0.3578 - val_loss: 0.2220 - val_acc: 0.7528
+Epoch 2/10 12511/12511 [==============================] - 363s 29ms/step - loss: 0.3798 - acc: 0.6509 - val_loss: 0.2273 - val_acc: 0.6189
+Epoch 3/10 12511/12511 [==============================] - 342s 27ms/step - loss: 0.3797 - acc: 0.5008 - val_loss: 0.2353 - val_acc: 0.5186
+Epoch 4/10 12511/12511 [==============================] - 344s 27ms/step - loss: 0.3796 - acc: 0.5289 - val_loss: 0.2584 - val_acc: 0.4285
+Epoch 5/10 12511/12511 [==============================] - 365s 29ms/step - loss: 0.3795 - acc: 0.7397 - val_loss: 0.3039 - val_acc: 0.3847
+Epoch 6/10 12511/12511 [==============================] - 352s 28ms/step - loss: 0.3793 - acc: 0.6808 - val_loss: 0.3918 - val_acc: 0.3643
+Epoch 7/10 12511/12511 [==============================] - 350s 28ms/step - loss: 0.3790 - acc: 0.6992 - val_loss: 0.5095 - val_acc: 0.3517
+Epoch 8/10 12511/12511 [==============================] - 367s 29ms/step - loss: 0.3782 - acc: 0.6454 - val_loss: 0.6190 - val_acc: 0.3384
+Epoch 9/10 12511/12511 [==============================] - 384s 31ms/step - loss: 0.3760 - acc: 0.6782 - val_loss: 0.6155 - val_acc: 0.3690
+Epoch 10/10 12511/12511 [==============================] - 389s 31ms/step - loss: 0.3618 - acc: 0.7302 - val_loss: 0.6103 - val_acc: 0.3875
+Finished training model 5363/5363 [==============================] - 40s 7ms/step
+[0.6102535394219216, 0.387469699806005]
+Saving model.
+============================================
+=====validating model: medium_3_channel=====
+============================================
+Compiling...
+[[0.46904296]
+ [0.40345296]
+ [0.4370476 ]
+ ...
+ [0.40345296]
+ [0.43175355]
+ [0.45049703]]
+TP: 994
+TN: 1273
+FP: 74
+FN: 3022
+Missed detection rate: 0.7524900398406374
+False positive rate: 0.05493689680772086

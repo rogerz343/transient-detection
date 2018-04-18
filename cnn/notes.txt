@@ -3,31 +3,12 @@ COMPUTATION SPEED
 cori - use 16 threads
 cori job - use ??? threads
 
-(
-  {
-    threads: 16
-    train_samples: 37500,
-    batch_size: 48,
-    img_size: (51, 51, 3),
-    model: [128, 64, 32, dense 32, dense 1]
-  },
-  time_per_epoch = 20 minutes
-)
-
-
-CNN PERFORMANCE
----------------
-
 {
-  batch_size = 48,
-  epochs = 10,
-  model = [
-    conv2D(128),
-    conv2D(64), dropout(0.1),
-    conv2D(64), dropout(0.1),
-    conv2D(32), dropout(0.1),
-    dense(32),
-    dense(1)
-  ],
-  num_params = 2800000
-}
+  threads: 16
+  train_samples: 12500,
+  batch_size: 48,
+  img_size: (51, 51, 3),
+  model: [128, 64, 64, 32, dense 32, dense 1]
+  num_params: 2850000
+},
+time_per_epoch = 350 seconds
