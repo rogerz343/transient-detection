@@ -14,9 +14,6 @@ run_cnn_out/
 *.hd5
 *.fit
 
-# results files
-*.txt
-
 # batch scripts
 *.sh
 *.sl
