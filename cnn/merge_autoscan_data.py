@@ -20,6 +20,8 @@ import numpy as np
 import imageio
 import argparse
 
+FILE_EXTENSION = '.gif'
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('imgs_root', help='The path to the root directory '
@@ -42,7 +44,7 @@ def main():
     for root, _, files in os.walk(imgs_root, topdown=False):
         for file in files:
             path = os.path.join(root, file)
-            if os.path.isfile(path) and path.lower().endswith('.gif'):
+            if os.path.isfile(path) and path.lower().endswith(FILE_EXTENSION):
                 img_paths.append(path)
 
     num_files = len(img_paths)
@@ -93,7 +95,7 @@ def main():
         image_array_full = np.array(image_array_full)
         image_array_full = np.transpose(image_array_full, (1, 2, 0))
         imageio.imwrite(
-            output_dir + '/' + new_folder_name + '/' + str(img_id) + '.gif',
+            output_dir + '/' + new_folder_name + '/' + str(img_id) + FILE_EXTENSION,
             image_array_full
         )
         if progress % 250 == 0:
