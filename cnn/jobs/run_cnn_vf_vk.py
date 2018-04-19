@@ -1,7 +1,7 @@
 """
 run_cnn_v2.py: Trains a CNN using the input images. The input data should be
 the output of read_data_v2.py and these files should be found in
-'./read_data_out/'. The output files will be saved to './run_cnn_out/'
+'./read_data_out/'. The output files will be saved to '/global/homes/l/liuto/520project/transient-detection/cnn/jobs/run_cnn_out/'
 
 arguments:
 - the suffix of the names of the .npy outputs files from read_data, used as
@@ -145,7 +145,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
 
     # parameters to change: training parameters
     batch_size = 48
-    epochs = 1
+    epochs = 20
     verbose = 1
     validation_data = (val_imgs, val_labels)
     shuffle = True
@@ -283,7 +283,7 @@ def main():
     output_name = args.output_name
 
     # create ouput directory (if doesn't exist)
-    OUTPUT_DIR = './run_cnn_out/'
+    OUTPUT_DIR = '/global/homes/l/liuto/520project/transient-detection/cnn/jobs/run_cnn_out/'
     try:
         os.makedirs(OUTPUT_DIR)
     except OSError as e:
