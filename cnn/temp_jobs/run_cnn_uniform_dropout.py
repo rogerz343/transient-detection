@@ -160,7 +160,7 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
     # )
 
     # save model after every epoch
-    checkpointer = ModelCheckpoint(output_dir + '/' + output_name + '_best.hd5', save_best_only=True)
+    # checkpointer = ModelCheckpoint(output_dir + '/' + output_name + '_best.hd5', save_best_only=True)
 
     # possible future feature
     data_augmentation = False
@@ -199,19 +199,19 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
             validation_data=validation_data,
             shuffle=shuffle,
             class_weight=class_weight,
-            callbacks=[checkpointer]
+            callbacks=[]
         )
     print('Finished training model')
     print(model.evaluate(x=val_imgs, y=val_labels))
     
-    print('Saving model.')
+    test_model(val_imgs, val_labels, [], output_dir, output_name, 0.5, model)
     model.save_weights(output_dir + '/' + output_name + '.hd5', overwrite=True)
     model_json = model.to_json()
     with open(output_dir + '/' + output_name + '.json', 'w') as json_file:
         json_file.write(model_json)
     return
 
-def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
+def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh,model):
     """ Tests a CNN model. This function assumes inputs are well-formed.
 
     :type val_imgs: numpy.ndarray The array of validation images. Each image is
@@ -233,9 +233,13 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
     print('=====validating model: ' + output_name + '=====')
     print('=' * (28 + len(output_name)))
 
+
     _, width, height, channels = val_imgs.shape
-    model = setup_model(width, height, channels)
-    model.load_weights(output_dir + '/' + output_name + '.hd5')
+    if(model == False):
+        model = setup_model(width, height, channels)
+        modelName = output_dir + '/' + output_name + '_best.hd5'
+        print('model: ' + modelName)
+        model.load_weights(modelName)
     predicted_labels = model.predict(val_imgs)
 
     print(predicted_labels)   # TODO: get rid of this
@@ -280,7 +284,7 @@ def main():
     output_name = args.output_name
 
     # create ouput directory (if doesn't exist)
-    OUTPUT_DIR = '/global/homes/l/liuto/520project/transient-detection/cnn/jobs/run_cnn_out/'
+    OUTPUT_DIR = '/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_out'
     try:
         os.makedirs(OUTPUT_DIR)
     except OSError as e:
@@ -321,11 +325,11 @@ def main():
         val_imgs = val_imgs[:, :, :, 0:3]
 
     # train model
-    train_model(train_imgs, train_labels, val_imgs, val_labels, OUTPUT_DIR, output_name)
+    #  train_model(train_imgs, train_labels, val_imgs, val_labels, OUTPUT_DIR, output_name)
     
     # test model
-    accept_threshold = 0.5
-    test_model(val_imgs, val_labels, val_ids, OUTPUT_DIR, output_name, accept_threshold)
+    accept_threshold = 0.6
+    test_model(val_imgs, val_labels, val_ids, OUTPUT_DIR, output_name, accept_threshold, False)
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,50 @@
+Missed detection rate: 0.6260741468205254
+False positive rate: 0.23333333333333334
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_vf_pk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_vf_pk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_vf_pk.py",
+Missed detection rate: 0.9845018450184502
+False positive rate: 0.0023112480739599386
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_vf_vk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_vf_vk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_vf_vk.py",
+Missed detection rate: 0.12193927522037218
+False positive rate: 0.6364347146207975
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_dropout.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_dropout.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_dropout.py",
+Missed detection rate: 0.8342689773004638
+False positive rate: 0.07109004739336493
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_pf_pk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_pf_pk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_pf_pk.py",
+Missed detection rate: 0.7440828402366864
+False positive rate: 0.1407804131599082
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_dropout_kernel.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_dropout_kernel.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_dropout_kernel.py",
+Missed detection rate: 0.608337493759361
+False positive rate: 0.22697126013264554
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_dropout_maxpooling.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_dropout_maxpooling.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_dropout_maxpooling.py",
+Missed detection rate: 0.40455978656318214
+False positive rate: 0.37983870967741934
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_kernelsize.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_kernelsize.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_kernelsize.py",
+Missed detection rate: 0.17421091264986543
+False positive rate: 0.5822884012539185
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_layers.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_layers.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_layers.py",
+Missed detection rate: 0.473475458601884
+False positive rate: 0.3288186606471031
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_smaller.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_smaller.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_uniform_smaller.py",
+Missed detection rate: 0.9569200297103243
+False positive rate: 0.021148036253776436
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_pf_vk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_pf_vk.py",
+"/global/homes/l/liuto/520project/transient-detection/cnn/temp_jobs/run_cnn_pf_vk.py",
