@@ -1,7 +1,8 @@
 # transient-detection
 A collection of machine learning techniques used to classify images of the
 night sky as either potential astronomical objects or as statistical defects or
-noise.
+noise. Note: any files that are not mentioned here may be uncleaned outputs from
+running the code and they should not be on github. Whoops.
 
 ## required files
 Some of the code references input image files and a .csv file that
@@ -17,6 +18,7 @@ can be found documented at the start of the files.
 and temp files in the data (in the link above) into one image with 3 channels.
 - `read_data.py`: used to read image files and convert them to .npy vectors
 - `run_cnn.py`: used to train a CNN on .npy image vectors and run tests.
+
 The link above (in the "required files" section) contains image files and a
 corresponding .csv file with the image id's and labels. In order to use
 `read_data.py` on this dataset, first remove any headers (not including column
