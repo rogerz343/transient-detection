@@ -1,8 +1,12 @@
 # transient-detection
 A collection of machine learning techniques used to classify images of the
 night sky as either potential astronomical objects or as statistical defects or
-noise. Note: any files that are not mentioned here may be uncleaned outputs from
-running the code and they should not be on github. Whoops.
+noise.
+
+### Note
+Any files that are not mentioned here may be uncleaned outputs from
+running the code and they are not needed to run the code. This includes any
+directories that begin with "temp\_".
 
 ## required files
 Some of the code references input image files and a .csv file that
