@@ -11,7 +11,8 @@ directories that begin with "temp\_".
 ## required files
 Some of the code references input image files and a .csv file that
 contains data about the images (labels, ids, features, etc.). All of these
-files can be found at http://portal.nersc.gov/project/dessn/autoscan/.
+files can be found at http://portal.nersc.gov/project/dessn/autoscan/ (they
+are not included here because they are very large files).
 
 ## cnn
 Contains the code for a convolutional neural network used to classify images.
