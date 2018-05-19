@@ -5,8 +5,8 @@ noise.
 
 ### Note
 Any files that are not mentioned here may be uncleaned outputs from
-running the code and they are not needed to run the code. This includes any
-directories that begin with "temp\_".
+running the code. This includes any directories that begin with "temp\_" or
+end with "\_out".
 
 ## required files
 Some of the code references input image files and a .csv file that
@@ -30,8 +30,12 @@ corresponding .csv file with the image id's and labels. In order to use
 names) so that it can be read directly as a table. When using this data, first
 run `merge_autoscan_data.py`, then `read_data.py`, then `run_cnn.py`.
 
+## feature data
+Contains some of the data needed for the code in `nn` and `random forest` to run.
+
 ## nn
-Contains the code for the nueral network that runs on the feature data.
+# Note: this code is poorly organized and documented. 
+Contains the code for the neural network that runs on the feature data.
 Other than the `comparePkls.py`, `extractObjLbl.pyc`, and `helpers.py` files, each of the `.py` files is a script that runs a neural network on the features data. Each of them can be run independently, given that the `feature data` folder is present in the parent directory. They all run a NN on the features using the specifications indicated in the names of the `.py` files. More specifically we had a template NN `Complete.py`. All other files test one modification (for example, a different architecture) of the `Complete.py` script. For example:
 - `n_2n_n2.py` indicates n layers then 2n layers then n/2 layers
 - `sparse` indicates dropout to be used
@@ -40,5 +44,6 @@ Other than the `comparePkls.py`, `extractObjLbl.pyc`, and `helpers.py` files, ea
 When run, each of these scripts will call on the helpers fuinction to compute all of their performance measures (including ROC, Precision Recall, TPR, FPR, F1, GM, and every other performance form the performance measures lecture notes).
 
 ## random forest
+# Note: this code is poorly organized and documented.
 Contains the code for the random forest classification algorithm. Other than `helpers.py`, `comparenT.py`, and `comparePkls.py`, each of the `.py` files is a script that runs a random forest (with specific parameters). All of the other `.py` files contain a copy of the random forest algorithm. The name of the script file indicates the modification (for example, mF3 indicates that 3 feature parameters are used in the script. When each of the scripts is run, it generates a .pkl file recording all of the performance measures and the precision-recall and ROC graphs in an output folder. `comparenT.py` parses through output .pkl files and computes relevant statistics measures.
 - `helpers.py`: measures all of the performance measures and saves the output to a `.pkl` file.
