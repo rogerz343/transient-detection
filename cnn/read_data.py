@@ -41,13 +41,17 @@ import errno
 import os
 import random
 import re
+import sys
 
 import numpy as np
 import pandas as pd
 import imageio
 import argparse
 
-def get_img_paths(imgs_root, file_ext):
+import scipy.misc
+from scipy import ndimage
+
+def get_img_paths(imgs_root, file_ext, max_img_num):
     """ Returns a list of the paths to the image files found. This function
     searches through the root directory as well as all subdirectories
 
@@ -55,14 +59,18 @@ def get_img_paths(imgs_root, file_ext):
         files
     :rtype: list A list of paths to the image files
     """
-    paths = []
+    counter = 0
     for root, _, files in os.walk(imgs_root, topdown=False):
         for file in files:
             path = os.path.join(root, file)
             if os.path.isfile(path) and path.lower().endswith(file_ext):
-                paths.append(path)
-    print('Number of files found: ' + str(len(paths)) + '.')
-    return paths
+                yield path
+                counter += 1
+        sys.stderr.write('\rimages found: ' + str(counter))
+        sys.stderr.flush()
+        if(counter > max_img_num * 7):
+            break
+    print('\nNumber of files found: ' + str(len(paths)) + '.')
 
 
 def throw_out_data(img_arrays, img_labels, img_ids, P, pred):
@@ -88,7 +96,26 @@ def throw_out_data(img_arrays, img_labels, img_ids, P, pred):
             del img_ids[i]
     return (img_arrays, img_labels, img_ids)
 
-def read_data(img_paths, labels_file, max_num_imgs, name):
+
+def blur_images(img_arrays, blurFactor = 0):
+    """
+takes a list of N channel images [:,:,k] where k runs from 0 to N-1, and blurs the images 
+by some blur factor
+
+:type img_arrays: list A list of image data arrays (each index is one image)
+:type blurFactor: a real number >= 0, where 0 returns the same image
+
+:retype: the same img_arrays but blurred
+    """
+    I, x, y, K = img_arrays.shape
+    for i in range(I):
+        for k in range(K):
+            img_arrays[i, :, :, k] = (
+                ndimage.gaussian_filter(img_arrays[i, :, :, k], sigma=blurFactor))
+    return img_arrays
+
+
+def read_data(img_paths, labels_file, max_num_imgs, name, blurFactor = 0):
     """ Reads in the images from img_path and the labels from labels_file, and
     saves them as .npy files
 
@@ -97,11 +124,13 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
     :type max_num_imgs: int The maximum number of images to read
     :type name: str A name used for naming the output files
     """
+    '''
     if len(img_paths) == 0:
         print("Error: no images found.")
         return
-    num_imgs = min(max_num_imgs, len(img_paths))
-    sample_img = imageio.imread(img_paths[0])
+    '''
+    num_imgs = max_num_imgs
+    sample_img = imageio.imread(next(img_paths))
     if len(sample_img.shape) > 2:
         width, height, channels = sample_img.shape
     else:
@@ -123,7 +152,10 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
                   + 'end with a suffix of one or more digits')
             return
         img_id = match.group(1)
-        img_array = imageio.imread(path)
+        try:
+            img_array = imageio.imread(path)
+        except ValueError:
+            continue
         if len(img_array.shape) < 3:
             img_array = img_array[:, :, np.newaxis]
         if img_array.shape != (width, height, channels):
@@ -139,10 +171,11 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
         img_labels.append(label)
         img_ids.append(img_id)
 
-        if i % 500 == 0:
-            print('Reading images: ' + str(int(100 * i / num_imgs)) + '%', end='\r')
-    print('Reading images: 100%', end='\r')
-    print()
+        if(i % 500 == 0):
+            print('Reading images: ' + str(int(100 * i / num_imgs)) + '%')
+        if(i > num_imgs):
+            break
+    print('Reading images: 100%')
 
     # post-processing, printing information, etc.
 
@@ -170,6 +203,8 @@ def read_data(img_paths, labels_file, max_num_imgs, name):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
+
+    blur_images(img_arrays_np, blurFactor)
     np.save('./read_data_out/img_arrays_' + name + '.npy', img_arrays_np) 
     np.save('./read_data_out/img_labels_' + name + '.npy', img_labels_np) 
     np.save('./read_data_out/img_ids_' + name + '.npy', img_ids_np)
@@ -185,12 +220,14 @@ def main():
                         + 'containing the image labels (classes)')
     parser.add_argument('max_num_imgs', help='The maximum number of images to read.')
     parser.add_argument('name', help='a string used to name the output files.')
+    parser.add_argument('-b', '--blur', help='blur factor')
     args = parser.parse_args()
 
     print('Reading images from: ' + args.imgs_root + '.')
     print('Reading image labels from: ' + args.labels_file)
 
-    img_paths = get_img_paths(args.imgs_root, args.file_ext)
+    
+    img_paths = get_img_paths(args.imgs_root, args.file_ext, int(args.max_num_imgs))
     read_data(img_paths, args.labels_file, int(args.max_num_imgs), args.name)
 
 if __name__ == '__main__':

@@ -21,10 +21,11 @@ import random
 import argparse
 import os
 import errno
-
+import pdb
 # import keras
 import keras
 from keras.preprocessing.image import ImageDataGenerator
+from keras import optimizers
 
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
@@ -49,13 +50,14 @@ def normalize_img(image):
     :type image: numpy.ndarray
     :rtype: numpy.ndarray
     """
-    max_val = np.amax(image)
+    max_val = 256.0 #np.amax(image)
     if max_val == 0:
         return image
-    return image / max_val
+    newImage = image/max_val
+    return newImage
 
 # parameters to change: the model layout
-def setup_model(width, height, channels):
+def setup_model(width, height, channels, lrn):
     """ Sets up and returns the keras model
 
     :type width: int The width of the image (in px)
@@ -66,26 +68,25 @@ def setup_model(width, height, channels):
     model = Sequential()
 
     # first layer: convolution
-    model.add(Convolution2D(128, 3, activation='relu',
-                            padding='same',
+    model.add(Convolution2D(32, 5, activation='relu',
+                            padding='valid',
                             input_shape=(width, height, channels),
-                            data_format='channels_last'))
-
+                            data_format='channels_last'))    
     # hidden layer
     model.add(Convolution2D(64, 4, activation='relu', padding='same'))
     model.add(Dropout(0.1))
-
+    '''
     # hidden layer
     model.add(Convolution2D(64, 5, activation='relu', padding='same'))
     model.add(Dropout(0.1))
-
+    '''
     # hidden layer
-    model.add(Convolution2D(32, 2, activation='relu', padding='same'))
+    model.add(Convolution2D(16, 3, activation='relu', padding='valid'))
     model.add(Dropout(0.1))
 
     # flatten to fully connected NN
     model.add(Flatten())
-    model.add(Dense(32, activation='relu'))
+    model.add(Dense(16, activation='relu'))
     model.add(Dropout(0.1))
 
     # last layer: dense (prediction) with 1 output
@@ -93,7 +94,8 @@ def setup_model(width, height, channels):
 
     print('Compiling...')
     
-    model.compile(loss='binary_crossentropy', optimizer='sgd', metrics=['accuracy'])
+    sgd = optimizers.SGD(lr=lrn, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
     return model
 
 # parameters to change: the weights for labels 0 and 1
@@ -109,8 +111,10 @@ def balanced_class_weights(labels):
     """
     counter = Counter(labels)
     max_freq = max(counter.values())  # num of times the highest-freq class appears
-    return {label: float(max_freq) / count for label, count in counter.items()}
+    weights = {label: float(max_freq) / count for label, count in counter.items()}
 
+    #pdb.set_trace()
+    return weights 
 def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, output_name):
     """ Trains a CNN. This function assumes inputs are well-formed.
 
@@ -128,25 +132,28 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
     print('========================')
     print('=====Training model=====')
     print('========================')
-
+    print('**********************')
     # normalize images
+    tempImages = []
     for i in range(train_imgs.shape[0]):
-        train_imgs[i] = normalize_img(train_imgs[i])
-    
+        newImage = normalize_img(train_imgs[i])
+        tempImages.append(newImage)
+    train_imgs = np.array(tempImages)
+    #pdb.set_trace()
     width, height, channels = train_imgs[0].shape
-
+    lrnRate = 0.001
     # set up model
-    model = setup_model(width, height, channels)
+    model = setup_model(width, height, channels, lrnRate)
     model.summary()
 
     # parameters to change: training parameters
     batch_size = 48
-    epochs = 10
+    epochs = 40
     verbose = 1
     validation_data = (val_imgs, val_labels)
     shuffle = True
     class_weight = balanced_class_weights(train_labels)
-
+    xx = balanced_class_weights(val_labels)
     # parameters to change: EarlyStopping
     # stop early (don't go through all epochs) if model converges
     # NOTE: DO NOT USE THIS UNLESS YOU KNOW WHAT YOU ARE DOING
@@ -224,20 +231,23 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
         classed as 0 or 1. This value should be between 0 and 1.
     """
     # normalize images
+    tempImages = []
     for i in range(val_imgs.shape[0]):
-        val_imgs[i] = normalize_img(val_imgs[i])
-    
+        
+        temp = normalize_img(val_imgs[i])
+        tempImages.append(temp)
+    val_imgs = np.array(tempImages)
     # find predictions
     print('=' * (28 + len(output_name)))
     print('=====validating model: ' + output_name + '=====')
     print('=' * (28 + len(output_name)))
-
+    lrnRate = 100
     _, width, height, channels = val_imgs.shape
-    model = setup_model(width, height, channels)
+    model = setup_model(width, height, channels, lrnRate)
     model.load_weights(output_dir + '/' + output_name + '.hd5')
     predicted_labels = model.predict(val_imgs)
 
-    print(predicted_labels)   # TODO: get rid of this
+    #print(predicted_labels)   # TODO: get rid of this
 
     predicted_labels = predicted_labels.flatten()
     Y_one = (predicted_labels >= thresh).astype(int)
@@ -274,6 +284,8 @@ def main():
     parser.add_argument('npy_name', help='The suffix of the names of the .npy '
                         + 'output files from read_data')
     parser.add_argument('output_name', help='duh')
+    parser.add_argument('-r', '--run', action='store_true', help='only test, no train')
+    parser.add_argument('-t', '--thresh', help='positive threshold')
     args = parser.parse_args()
     npy_name = args.npy_name
     output_name = args.output_name
@@ -295,7 +307,7 @@ def main():
     image_ids = np.load('./read_data_out/img_ids_' + npy_name + '.npy')
 
     # parameters to change: optionally crop images
-    images_new = images[:, 10:40, 10:40, :]
+    images_new = images[:, 11:39, 11:39, :]
     images = images_new
     
     print('Selecting a random sample to train.')
@@ -315,15 +327,19 @@ def main():
     val_ids = image_ids[val_indices]
 
     # remove last channel if there are 4 color channels
-    if len(train_imgs[0].shape) == 3 and train_imgs[0].shape[2] > 3:
-        train_imgs = train_imgs[:, :, :, 0:3]
-        val_imgs = val_imgs[:, :, :, 0:3]
-
+    if len(train_imgs[0].shape) == 3 and train_imgs[0].shape[2] > 2:
+        train_imgs = train_imgs[:, :, :, 1:3]
+        val_imgs = val_imgs[:, :, :, 1:3]
+    print(train_imgs[0].shape)
     # train model
-    train_model(train_imgs, train_labels, val_imgs, val_labels, OUTPUT_DIR, output_name)
-    
+    if(not args.run):
+        train_model(train_imgs, train_labels, 
+            val_imgs, val_labels, OUTPUT_DIR, output_name)
+    thresh = 0.5
+    if(args.thresh):
+        thresh = float(args.thresh) 
     # test model
-    accept_threshold = 0.5
+    accept_threshold = thresh
     test_model(val_imgs, val_labels, val_ids, OUTPUT_DIR, output_name, accept_threshold)
 
 if __name__ == '__main__':
