@@ -27,11 +27,13 @@ import keras
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 
+from keras.utils import to_categorical
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 from keras.models import Sequential
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Dense, Dropout, Activation, Flatten
+from keras.datasets import mnist
 
 # make keras not eat threads for breakfast
 # cori = 16, cori job = 32, personal computer = 8
@@ -50,14 +52,12 @@ def normalize_img(image):
     :type image: numpy.ndarray
     :rtype: numpy.ndarray
     """
-    max_val = 256.0 #np.amax(image)
-    if max_val == 0:
-        return image
+    max_val = 256.0#256.0 #np.amax(image)
     newImage = image/max_val
     return newImage
 
 # parameters to change: the model layout
-def setup_model(width, height, channels, lrn):
+def setup_model(width, height, channels, lrn, modelParams=None):
     """ Sets up and returns the keras model
 
     :type width: int The width of the image (in px)
@@ -65,37 +65,47 @@ def setup_model(width, height, channels, lrn):
     :type channels: int The number of color channels in the image
     :rtype: keras.models.Sequential The keras Sequential model
     """
+
+    if(modelParams is None):
+        modelParams = ([(8, 4, 'relu', 'valid', 0.1),
+                        (4, 3, 'relu', 'valid', 0.1)],
+                        [(16, 'sigmoid', 0.1)])
     model = Sequential()
-
-    # first layer: convolution
-    model.add(Convolution2D(32, 5, activation='relu',
-                            padding='valid',
-                            input_shape=(width, height, channels),
-                            data_format='channels_last'))    
-    # hidden layer
-    model.add(Convolution2D(64, 4, activation='relu', padding='same'))
-    model.add(Dropout(0.1))
     '''
-    # hidden layer
-    model.add(Convolution2D(64, 5, activation='relu', padding='same'))
-    model.add(Dropout(0.1))
-    '''
-    # hidden layer
-    model.add(Convolution2D(16, 3, activation='relu', padding='valid'))
-    model.add(Dropout(0.1))
-
-    # flatten to fully connected NN
     model.add(Flatten())
-    model.add(Dense(16, activation='relu'))
+    model.add(Dense(output_dim=512, input_dim=width*height*channels ,init='uniform'))
+    model.add(Activation('sigmoid'))
+    model.add(Dense(output_dim=1))
+    model.add(Activation('sigmoid'))
+    '''
+    
+    model.add(Conv2D(64, kernel_size=3, activation='relu',
+                            padding='valid',
+                            input_shape=(width, height, channels)))#,
+                            #data_format='channels_last'))    
+    model.add(Conv2D(32, kernel_size=3, activation='relu'))
+    model.add(Flatten())
+    '''
     model.add(Dropout(0.1))
+    
+    for layer in modelParams[0]:
+        model.add(Convolution2D(layer[0], layer[1], 
+                        activation=layer[2], padding=layer[3]))
+        model.add(Dropout(layer[4]))
+    '''
+    # flatten to fully connected NN
+    #for layer in modelParams[1]:
+    #    model.add(Dense(layer[0], activation=layer[1]))
+        #model.add(Dropout(layer[2]))
 
     # last layer: dense (prediction) with 1 output
-    model.add(Dense(1, activation='sigmoid', kernel_initializer='random_uniform'))
+    model.add(Dense(2, activation='softmax'))#, kernel_initializer='random_uniform'))
 
     print('Compiling...')
+    sgd = optimizers.SGD(lr=lrn, momentum=0.9, nesterov=True)
     
-    sgd = optimizers.SGD(lr=lrn, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    
     return model
 
 # parameters to change: the weights for labels 0 and 1
@@ -115,6 +125,8 @@ def balanced_class_weights(labels):
 
     #pdb.set_trace()
     return weights 
+
+
 def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, output_name):
     """ Trains a CNN. This function assumes inputs are well-formed.
 
@@ -134,26 +146,29 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
     print('========================')
     print('**********************')
     # normalize images
+    '''
     tempImages = []
     for i in range(train_imgs.shape[0]):
         newImage = normalize_img(train_imgs[i])
         tempImages.append(newImage)
     train_imgs = np.array(tempImages)
+    '''
     #pdb.set_trace()
     width, height, channels = train_imgs[0].shape
-    lrnRate = 0.001
+    lrnRate = 0.1
     # set up model
     model = setup_model(width, height, channels, lrnRate)
+ 
     model.summary()
-
-    # parameters to change: training parameters
+        # parameters to change: training parameters
     batch_size = 48
-    epochs = 40
+    epochs = 4
     verbose = 1
     validation_data = (val_imgs, val_labels)
-    shuffle = True
-    class_weight = balanced_class_weights(train_labels)
-    xx = balanced_class_weights(val_labels)
+    shuffle = False
+    #class_weight = balanced_class_weights(train_labels)
+    #xx = balanced_class_weights(val_labels)
+    #pdb.set_trace()
     # parameters to change: EarlyStopping
     # stop early (don't go through all epochs) if model converges
     # NOTE: DO NOT USE THIS UNLESS YOU KNOW WHAT YOU ARE DOING
@@ -167,7 +182,6 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
 
     # save model after every epoch
     checkpointer = ModelCheckpoint(output_dir + '/' + output_name + '_best.hd5', save_best_only=True)
-
     # possible future feature
     data_augmentation = False
     if data_augmentation:
@@ -197,15 +211,16 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
         # )
     else:
         print('Not using data augmentation.')
+        pdb.set_trace()
         model.fit(
             x=train_imgs, y=train_labels,
-            batch_size=batch_size,
+            #batch_size=batch_size,
             epochs=epochs,
             verbose=verbose,
             validation_data=validation_data,
-            shuffle=shuffle,
-            class_weight=class_weight,
-            callbacks=[checkpointer]
+            #shuffle=shuffle,
+            #class_weight=class_weight,
+            #callbacks=[checkpointer]
         )
     print('Finished training model')
     print(model.evaluate(x=val_imgs, y=val_labels))
@@ -217,9 +232,8 @@ def train_model(train_imgs, train_labels, val_imgs, val_labels, output_dir, outp
         json_file.write(model_json)
     return
 
-def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
+def test_model(val_imgs, val_labels, output_dir, output_name, thresh):
     """ Tests a CNN model. This function assumes inputs are well-formed.
-
     :type val_imgs: numpy.ndarray The array of validation images. Each image is
         a 2 or 3-dimensional array of numbers
     :type val_labels: numpy.ndarray The array of corresponding validation image
@@ -241,7 +255,7 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
     print('=' * (28 + len(output_name)))
     print('=====validating model: ' + output_name + '=====')
     print('=' * (28 + len(output_name)))
-    lrnRate = 100
+    lrnRate = 0.001
     _, width, height, channels = val_imgs.shape
     model = setup_model(width, height, channels, lrnRate)
     model.load_weights(output_dir + '/' + output_name + '.hd5')
@@ -249,7 +263,8 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
 
     #print(predicted_labels)   # TODO: get rid of this
 
-    predicted_labels = predicted_labels.flatten()
+    predicted_labels = np.argmax(predicted_labels, axis=1)
+    val_labels = np.argmax(val_labels, axis=1)
     Y_one = (predicted_labels >= thresh).astype(int)
     Y_zero = (predicted_labels < thresh).astype(int)
     true_one = val_labels
@@ -261,7 +276,8 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
     FN = np.count_nonzero(Y_zero * true_one)
 
     # save predictions
-    predictions = [val_ids, predicted_labels, val_labels]
+    predictions = [predicted_labels, val_labels]
+    print(predictions)
     np.save(output_dir + '/' + output_name + '_pred.npy', predictions)
 
     print('TP: ' + str(TP))
@@ -278,6 +294,41 @@ def test_model(val_imgs, val_labels, val_ids, output_dir, output_name, thresh):
     # cols = fits.ColDefs([col1, col2])
     # tbhdu = fits.BinTableHDU.from_columns(cols)
     # tbhdu.writeto(output_dir + '/' + name + '.fit', overwrite='True')
+
+
+def splitData(images, labels, trainRatio):
+    print('Selecting a random sample to train.')
+    num_img = np.size(images, 0)
+    ntrain = int(trainRatio * num_img)
+    all_indices = list(range(0, num_img))
+    random.shuffle(all_indices)
+    
+    train_indices = all_indices[:ntrain]
+    val_indices = all_indices[ntrain:num_img]
+
+    train_imgs = images[train_indices].astype(float)
+    train_labels = labels[train_indices].astype(int)
+
+    val_imgs = images[val_indices].astype(float)
+    val_labels = labels[val_indices].astype(int)   
+    '''
+ #download mnist data and split into train and test sets
+    (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    #reshape data to fit model
+    X_train = X_train.reshape(60000,28,28,1)
+    X_test = X_test.reshape(10000,28,28,1)
+    #one-hot encode target column
+    y_train = to_categorical(y_train)
+    y_test = to_categorical(y_test)
+    
+    train_imgs = X_train
+    train_labels = y_train
+    val_imgs = X_test
+    val_labels = y_test
+    '''
+
+
+    return train_imgs, train_labels, val_imgs, val_labels
 
 def main():
     parser = argparse.ArgumentParser()
@@ -309,38 +360,69 @@ def main():
     # parameters to change: optionally crop images
     images_new = images[:, 11:39, 11:39, :]
     images = images_new
+    numImgs = len(images)
+
+    rf = 0.03    
+    images = images[:int(numImgs*rf)]
+    train_imgs, train_labels, val_imgs, val_labels = splitData(images, labels, 0.7)
     
-    print('Selecting a random sample to train.')
-    num_img = np.size(images, 0)
-    ntrain = int(trainRatio * num_img)
-    all_indices = list(range(0, num_img))
-    random.shuffle(all_indices)
-    
-    train_indices = all_indices[:ntrain]
-    val_indices = all_indices[ntrain:num_img]
-
-    train_imgs = images[train_indices]
-    train_labels = labels[train_indices].astype(int)
-
-    val_imgs = images[val_indices]
-    val_labels = labels[val_indices].astype(int)   
-    val_ids = image_ids[val_indices]
-
     # remove last channel if there are 4 color channels
     if len(train_imgs[0].shape) == 3 and train_imgs[0].shape[2] > 2:
         train_imgs = train_imgs[:, :, :, 1:3]
         val_imgs = val_imgs[:, :, :, 1:3]
     print(train_imgs[0].shape)
+    '''
+    REMOVE LATER
+   
+
+    (train_imgs, train_labels), (val_imgs, val_labels) = mnist.load_data()
+
+    train_imgs =train_imgs.reshape(60000,28,28,1)
+    val_imgs = val_imgs.reshape(10000,28,28,1)
+
+    
+    END
+    '''
+    train_labels = to_categorical(train_labels)
+    val_labels = to_categorical(val_labels)
+   
+
     # train model
     if(not args.run):
+        train_imgs, train_labels, val_imgs1, val_labels1 = splitData(
+                        train_imgs, train_labels, trainRatio)
         train_model(train_imgs, train_labels, 
-            val_imgs, val_labels, OUTPUT_DIR, output_name)
+            val_imgs1, val_labels1, OUTPUT_DIR, output_name)
     thresh = 0.5
     if(args.thresh):
         thresh = float(args.thresh) 
     # test model
     accept_threshold = thresh
-    test_model(val_imgs, val_labels, val_ids, OUTPUT_DIR, output_name, accept_threshold)
+    test_model(val_imgs, val_labels, OUTPUT_DIR, output_name, accept_threshold)
 
+def main1():
+    #download mnist data and split into train and test sets
+    (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    #reshape data to fit model
+    X_train = X_train.reshape(60000,28,28,1)
+    X_test = X_test.reshape(10000,28,28,1)
+    #one-hot encode target column
+    y_train = to_categorical(y_train)
+    y_test = to_categorical(y_test)
+
+    #create model
+    model = Sequential()
+
+    #add model layers
+    model.add(Conv2D(64, kernel_size=3, activation='relu', input_shape=(28,28,1)))
+    model.add(Conv2D(32, kernel_size=3, activation='relu'))
+    model.add(Flatten())
+    model.add(Dense(10, activation='softmax'))
+    #compile model using accuracy as a measure of model performance
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    #train model
+    model.fit(X_train, y_train,validation_data=(X_test, y_test), epochs=3)
 if __name__ == '__main__':
     main()
+
+
